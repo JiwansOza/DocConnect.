@@ -71,16 +71,17 @@ export default function Patients() {
   )
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
+    <div className="space-y-4 sm:space-y-6">
+      {/* Title and New Patient button */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-0">
         <div>
-          <h1 className="text-3xl font-bold text-foreground">Patients</h1>
-          <p className="text-muted-foreground">Manage your patient records</p>
+          <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Patients</h1>
+          <p className="text-sm sm:text-base text-muted-foreground">Manage your patients</p>
         </div>
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
-            <Button className="flex items-center gap-2">
-              <Plus className="h-4 w-4" />
+            <Button className="w-full sm:w-auto h-10 sm:h-12 text-sm sm:text-base flex items-center justify-center mt-2 sm:mt-0">
+              <Plus className="h-4 w-4 mr-2" />
               Add Patient
             </Button>
           </DialogTrigger>
@@ -172,38 +173,38 @@ export default function Patients() {
         />
       </div>
 
-      {/* Patients Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      {/* Patients List */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-6">
         {loading ? (
-          <div className="col-span-full text-center py-8">Loading patients...</div>
+          <div className="col-span-full text-center py-2 sm:py-8">Loading patients...</div>
         ) : filteredPatients.length === 0 ? (
-          <div className="col-span-full text-center py-8 text-muted-foreground">
+          <div className="col-span-full text-center py-2 sm:py-8 text-muted-foreground">
             No patients found. Add your first patient to get started.
           </div>
         ) : (
           filteredPatients.map((patient) => (
-            <Card key={patient.id} className="hover:shadow-md transition-shadow cursor-pointer" onClick={() => setSelectedPatient(patient)}>
-              <CardContent className="p-6">
-                <div className="flex items-center gap-4 mb-4">
-                  <Avatar className="h-12 w-12">
+            <Card key={patient.id} className="hover:shadow-md transition-shadow cursor-pointer w-full">
+              <CardContent className="p-3 sm:p-6">
+                <div className="flex items-center gap-2 sm:gap-4 mb-2 sm:mb-4">
+                  <Avatar className="h-10 w-10 sm:h-12 sm:w-12">
                     <AvatarFallback>
                       {patient.full_name.split(' ').map(n => n[0]).join('')}
                     </AvatarFallback>
                   </Avatar>
                   <div className="flex-1">
-                    <h3 className="font-semibold">{patient.full_name}</h3>
-                    <p className="text-sm text-muted-foreground">
+                    <h3 className="font-semibold text-base sm:text-lg">{patient.full_name}</h3>
+                    <p className="text-xs sm:text-sm text-muted-foreground">
                       {patient.date_of_birth && new Date().getFullYear() - new Date(patient.date_of_birth).getFullYear()} years
                       {patient.gender && `, ${patient.gender}`}
                     </p>
                   </div>
                 </div>
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2 text-sm">
+                <div className="space-y-1 sm:space-y-2">
+                  <div className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
                     <Phone className="h-4 w-4 text-muted-foreground" />
                     <span>{patient.phone}</span>
                   </div>
-                  <div className="flex items-center gap-2 text-sm">
+                  <div className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
                     <Calendar className="h-4 w-4 text-muted-foreground" />
                     <span>Added: {new Date(patient.created_at).toLocaleDateString()}</span>
                   </div>

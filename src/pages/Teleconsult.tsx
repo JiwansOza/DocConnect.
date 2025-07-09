@@ -88,21 +88,22 @@ export default function Teleconsult() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
+    <div className="space-y-4 sm:space-y-6">
+      {/* Title and Action Buttons */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-0">
         <div>
-          <h1 className="text-3xl font-bold text-foreground">Teleconsultation</h1>
-          <p className="text-muted-foreground">Conduct video consultations with patients</p>
+          <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Teleconsultation</h1>
+          <p className="text-sm sm:text-base text-muted-foreground">Conduct video consultations with patients</p>
         </div>
-        <div className="flex gap-2">
-          <Button onClick={startInstantMeeting} className="flex items-center gap-2">
-            <Video className="h-4 w-4" />
+        <div className="flex flex-col sm:flex-row gap-2 sm:gap-2 mt-2 sm:mt-0 w-full sm:w-auto">
+          <Button onClick={startInstantMeeting} className="w-full sm:w-auto h-10 sm:h-12 text-sm sm:text-base flex items-center justify-center">
+            <Video className="h-4 w-4 mr-2" />
             Start Instant Meeting
           </Button>
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
-              <Button variant="outline" className="flex items-center gap-2">
-                <Plus className="h-4 w-4" />
+              <Button variant="outline" className="w-full sm:w-auto h-10 sm:h-12 text-sm sm:text-base flex items-center justify-center">
+                <Plus className="h-4 w-4 mr-2" />
                 Schedule Meeting
               </Button>
             </DialogTrigger>
@@ -175,7 +176,7 @@ export default function Teleconsult() {
       </div>
 
       {/* Meeting Controls */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="flex flex-col gap-2 md:grid md:grid-cols-3 md:gap-6">
         <Card>
           <CardContent className="p-6 text-center">
             <div className="flex flex-col items-center gap-4">
@@ -229,38 +230,38 @@ export default function Teleconsult() {
       </div>
 
       {/* Upcoming Consultations */}
-      <Card>
+      <Card className="w-full">
         <CardHeader>
-          <CardTitle>Upcoming Consultations</CardTitle>
+          <CardTitle className="text-lg sm:text-xl">Upcoming Consultations</CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
+        <CardContent className="p-2 sm:p-6">
+          <div className="space-y-2 sm:space-y-4">
             {teleconsultationsLoading ? (
-              <div className="text-center py-4">Loading teleconsultations...</div>
+              <div className="text-center py-2 sm:py-4">Loading teleconsultations...</div>
             ) : teleconsultations.length === 0 ? (
-              <div className="text-center py-4 text-muted-foreground">
+              <div className="text-center py-2 sm:py-4 text-muted-foreground">
                 No upcoming consultations
               </div>
             ) : (
               teleconsultations.map((consultation) => (
-                <div 
-                  key={consultation.id} 
-                  className="flex items-center justify-between p-4 rounded-lg border bg-card hover:shadow-md transition-shadow"
+                <div
+                  key={consultation.id}
+                  className="flex flex-col md:flex-row items-start md:items-center justify-between p-2 sm:p-4 rounded-lg border bg-card hover:shadow-md transition-shadow gap-1 md:gap-0"
                 >
-                  <div className="flex items-center gap-4">
-                    <div className="flex flex-col items-center justify-center w-16 h-16 bg-primary/10 rounded-lg">
-                      <Video className="h-5 w-5 text-primary" />
+                  <div className="flex items-center gap-2 sm:gap-4">
+                    <div className="flex flex-col items-center justify-center w-10 h-10 sm:w-16 sm:h-16 bg-primary/10 rounded-lg">
+                      <Video className="h-5 w-5 sm:h-8 sm:w-8 text-primary" />
                       <span className="text-xs font-medium">{consultation.time}</span>
                     </div>
                     <div>
-                      <div className="flex items-center gap-2">
-                        <h3 className="font-semibold">{consultation.patients?.full_name}</h3>
+                      <div className="flex items-center gap-1 sm:gap-2">
+                        <h3 className="font-semibold text-base sm:text-lg">{consultation.patients?.full_name}</h3>
                         <Badge className={getStatusColor(consultation.status)}>
                           {consultation.status}
                         </Badge>
                       </div>
-                      <p className="text-sm text-muted-foreground">{consultation.date}</p>
-                      <div className="flex items-center gap-4 mt-1">
+                      <p className="text-xs sm:text-sm text-muted-foreground">{consultation.date}</p>
+                      <div className="flex items-center gap-2 sm:gap-4 mt-1">
                         <span className="text-xs text-muted-foreground flex items-center gap-1">
                           <Clock className="h-3 w-3" />
                           {consultation.duration} min
@@ -272,19 +273,12 @@ export default function Teleconsult() {
                       </div>
                     </div>
                   </div>
-                  <div className="flex gap-2">
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      onClick={() => copyToClipboard(consultation.meeting_url)}
-                    >
+                  <div className="flex gap-1 sm:gap-2 mt-2 md:mt-0 w-full md:w-auto">
+                    <Button variant="outline" size="sm" className="flex-1 md:flex-none" onClick={() => copyToClipboard(consultation.meeting_url)}>
                       <Copy className="h-4 w-4 mr-2" />
                       Copy Link
                     </Button>
-                    <Button 
-                      size="sm"
-                      onClick={() => window.open(consultation.meeting_url, '_blank')}
-                    >
+                    <Button size="sm" className="flex-1 md:flex-none" onClick={() => window.open(consultation.meeting_url, '_blank')}>
                       <ExternalLink className="h-4 w-4 mr-2" />
                       Join Meeting
                     </Button>

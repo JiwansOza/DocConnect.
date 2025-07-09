@@ -116,16 +116,17 @@ export default function Prescriptions() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
+    <div className="space-y-4 sm:space-y-6">
+      {/* Title and New Prescription button */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-0">
         <div>
-          <h1 className="text-3xl font-bold text-foreground">Prescriptions</h1>
-          <p className="text-muted-foreground">Create and manage patient prescriptions</p>
+          <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Prescriptions</h1>
+          <p className="text-sm sm:text-base text-muted-foreground">Create and manage patient prescriptions</p>
         </div>
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
-            <Button className="flex items-center gap-2">
-              <Plus className="h-4 w-4" />
+            <Button className="w-full sm:w-auto h-10 sm:h-12 text-sm sm:text-base flex items-center justify-center mt-2 sm:mt-0">
+              <Plus className="h-4 w-4 mr-2" />
               New Prescription
             </Button>
           </DialogTrigger>
@@ -240,36 +241,36 @@ export default function Prescriptions() {
           placeholder="Search prescriptions..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="pl-10"
+          className="pl-10 h-10 sm:h-12 text-sm sm:text-base"
         />
       </div>
 
       {/* Prescriptions List */}
-      <div className="space-y-4">
+      <div className="space-y-2 sm:space-y-4">
         {prescriptionsLoading ? (
-          <div className="text-center py-4">Loading prescriptions...</div>
+          <div className="text-center py-2 sm:py-4">Loading prescriptions...</div>
         ) : filteredPrescriptions.length === 0 ? (
-          <div className="text-center py-4 text-muted-foreground">
+          <div className="text-center py-2 sm:py-4 text-muted-foreground">
             No prescriptions found
           </div>
         ) : (
           filteredPrescriptions.map((prescription) => (
-            <Card key={prescription.id} className="hover:shadow-md transition-shadow">
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center gap-4">
-                    <div className="flex items-center justify-center w-12 h-12 bg-primary/10 rounded-lg">
-                      <FileText className="h-6 w-6 text-primary" />
+            <Card key={prescription.id} className="hover:shadow-md transition-shadow w-full">
+              <CardContent className="p-3 sm:p-6">
+                <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-2 sm:mb-4 gap-1 md:gap-0">
+                  <div className="flex items-center gap-2 sm:gap-4">
+                    <div className="flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 bg-primary/10 rounded-lg">
+                      <FileText className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
                     </div>
                     <div>
-                      <div className="flex items-center gap-2">
-                        <h3 className="font-semibold">{prescription.patients?.full_name}</h3>
+                      <div className="flex items-center gap-1 sm:gap-2">
+                        <h3 className="font-semibold text-base sm:text-lg">{prescription.patients?.full_name}</h3>
                         <Badge className={getStatusColor(prescription.status)}>
                           {prescription.status}
                         </Badge>
                       </div>
-                      <p className="text-sm text-muted-foreground">{prescription.medication_name}</p>
-                      <div className="flex items-center gap-4 mt-1">
+                      <p className="text-xs sm:text-sm text-muted-foreground">{prescription.medication_name}</p>
+                      <div className="flex items-center gap-2 sm:gap-4 mt-1">
                         <span className="text-xs text-muted-foreground flex items-center gap-1">
                           <Calendar className="h-3 w-3" />
                           {prescription.prescribed_date}
@@ -281,24 +282,23 @@ export default function Prescriptions() {
                       </div>
                     </div>
                   </div>
-                  <div className="flex gap-2">
-                    <Button variant="outline" size="sm" onClick={() => downloadPrescriptionPDF(prescription)}>
+                  <div className="flex gap-1 sm:gap-2 mt-2 md:mt-0 w-full md:w-auto">
+                    <Button variant="outline" size="sm" className="flex-1 md:flex-none" onClick={() => downloadPrescriptionPDF(prescription)}>
                       <Download className="h-4 w-4 mr-2" />
                       Download PDF
                     </Button>
-                    <Button size="sm" onClick={() => handleViewDetails(prescription)}>View Details</Button>
+                    <Button size="sm" className="flex-1 md:flex-none" onClick={() => handleViewDetails(prescription)}>View Details</Button>
                   </div>
                 </div>
-                
-                <div className="space-y-2">
-                  <Label className="text-sm font-medium">Medication Details:</Label>
-                  <div className="p-3 bg-muted/50 rounded-lg">
-                    <p className="font-medium text-sm">{prescription.medication_name}</p>
-                    <p className="text-xs text-muted-foreground">
+                <div className="space-y-1 sm:space-y-2">
+                  <Label className="text-xs sm:text-sm font-medium">Medication Details:</Label>
+                  <div className="p-2 sm:p-3 bg-muted/50 rounded-lg">
+                    <p className="font-medium text-xs sm:text-sm">{prescription.medication_name}</p>
+                    <p className="text-xs sm:text-sm text-muted-foreground">
                       {prescription.dosage} • {prescription.frequency} • {prescription.duration}
                     </p>
                     {prescription.instructions && (
-                      <p className="text-xs text-muted-foreground mt-1">
+                      <p className="text-xs sm:text-muted-foreground mt-1">
                         Instructions: {prescription.instructions}
                       </p>
                     )}

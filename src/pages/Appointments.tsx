@@ -108,16 +108,17 @@ export default function Appointments() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
+    <div className="space-y-4 sm:space-y-6">
+      {/* Title and New Appointment button */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-0">
         <div>
-          <h1 className="text-3xl font-bold text-foreground">Appointments</h1>
-          <p className="text-muted-foreground">Manage your patient appointments</p>
+          <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Appointments</h1>
+          <p className="text-sm sm:text-base text-muted-foreground">Manage your patient appointments</p>
         </div>
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
-            <Button className="flex items-center gap-2">
-              <Plus className="h-4 w-4" />
+            <Button className="w-full sm:w-auto h-10 sm:h-12 text-sm sm:text-base flex items-center justify-center mt-2 sm:mt-0">
+              <Plus className="h-4 w-4 mr-2" />
               New Appointment
             </Button>
           </DialogTrigger>
@@ -204,74 +205,67 @@ export default function Appointments() {
         </Dialog>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      {/* Calendar and Appointments List */}
+      <div className="flex flex-col gap-2 lg:grid lg:grid-cols-3 lg:gap-6">
         {/* Calendar */}
-        <Card className="lg:col-span-1">
+        <Card className="w-full">
           <CardHeader>
-            <CardTitle>Calendar</CardTitle>
+            <CardTitle className="text-lg sm:text-xl">Calendar</CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-2 sm:p-6">
             <Calendar
               mode="single"
               selected={selectedDate}
               onSelect={setSelectedDate}
-              className={cn("w-full pointer-events-auto")}
+              className="w-full"
             />
           </CardContent>
         </Card>
 
         {/* Appointments List */}
-        <Card className="lg:col-span-2">
+        <Card className="w-full lg:col-span-2">
           <CardHeader>
-            <CardTitle>
-              Appointments for {selectedDate?.toLocaleDateString()}
-            </CardTitle>
+            <CardTitle className="text-lg sm:text-xl">Appointments for {selectedDate?.toLocaleDateString()}</CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
+          <CardContent className="p-2 sm:p-6">
+            <div className="space-y-2 sm:space-y-4">
               {appointmentsLoading ? (
-                <div className="text-center py-4">Loading appointments...</div>
+                <div className="text-center py-2 sm:py-4">Loading appointments...</div>
               ) : filteredAppointments.length === 0 ? (
-                <div className="text-center py-4 text-muted-foreground">
+                <div className="text-center py-2 sm:py-4 text-muted-foreground">
                   No appointments for this date
                 </div>
               ) : (
                 filteredAppointments.map((appointment) => (
-                  <div 
-                    key={appointment.id} 
-                    className="flex items-center justify-between p-4 rounded-lg border bg-card hover:shadow-md transition-shadow"
+                  <div
+                    key={appointment.id}
+                    className="flex flex-col md:flex-row items-start md:items-center justify-between p-2 sm:p-4 rounded-lg border bg-card hover:shadow-md transition-shadow gap-1 md:gap-0"
                   >
-                    <div className="flex items-center gap-4">
-                      <div className="flex flex-col items-center justify-center w-16 h-16 bg-primary/10 rounded-lg">
-                        <Clock className="h-5 w-5 text-primary" />
-                        <span className="text-xs font-medium">{appointment.appointment_time}</span>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <h3 className="font-semibold text-base sm:text-lg">{appointment.patients?.full_name}</h3>
+                        <Badge className={getStatusColor(appointment.status)}>
+                          {appointment.status}
+                        </Badge>
                       </div>
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <h3 className="font-semibold">{appointment.patients?.full_name}</h3>
-                          <Badge className={getStatusColor(appointment.status)}>
-                            {appointment.status}
-                          </Badge>
-                        </div>
-                        <p className="text-sm text-muted-foreground">{appointment.type}</p>
-                        <div className="flex items-center gap-4 mt-1">
+                      <p className="text-xs sm:text-sm text-muted-foreground">{appointment.type}</p>
+                      <div className="flex items-center gap-2 mt-1">
+                        <span className="text-xs text-muted-foreground flex items-center gap-1">
+                          <Clock className="h-3 w-3" />
+                          {appointment.duration_minutes} min
+                        </span>
+                        {appointment.patients?.phone && (
                           <span className="text-xs text-muted-foreground flex items-center gap-1">
-                            <Clock className="h-3 w-3" />
-                            {appointment.duration_minutes} min
+                            <Phone className="h-3 w-3" />
+                            {appointment.patients.phone}
                           </span>
-                          {appointment.patients?.phone && (
-                            <span className="text-xs text-muted-foreground flex items-center gap-1">
-                              <Phone className="h-3 w-3" />
-                              {appointment.patients.phone}
-                            </span>
-                          )}
-                        </div>
+                        )}
                       </div>
                     </div>
-                    <div className="flex gap-2">
-                      <Button variant="ghost" size="sm" onClick={() => handleJoin(appointment)}>Join</Button>
-                      <Button variant="outline" size="sm" onClick={() => openReschedule(appointment)}>Reschedule</Button>
-                      <Button size="sm" onClick={() => handleStartConsultation(appointment)}>Start Consultation</Button>
+                    <div className="flex gap-1 sm:gap-2 mt-2 md:mt-0 w-full md:w-auto">
+                      <Button variant="ghost" size="sm" className="flex-1 md:flex-none" onClick={() => handleJoin(appointment)}>Join</Button>
+                      <Button variant="outline" size="sm" className="flex-1 md:flex-none" onClick={() => openReschedule(appointment)}>Reschedule</Button>
+                      <Button size="sm" className="flex-1 md:flex-none" onClick={() => handleStartConsultation(appointment)}>Start Consultation</Button>
                     </div>
                   </div>
                 ))
