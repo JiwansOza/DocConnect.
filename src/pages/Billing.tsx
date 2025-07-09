@@ -25,6 +25,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useBilling } from "@/hooks/useBilling"
 import { usePatients } from "@/hooks/usePatients"
 import jsPDF from "jspdf";
+import { useToast } from "@/hooks/use-toast";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Table, TableBody, TableCell, TableRow } from "@/components/ui/table"
 
 export default function Billing() {
   const [isDialogOpen, setIsDialogOpen] = useState(false)
@@ -43,6 +46,8 @@ export default function Billing() {
   const [selectedBill, setSelectedBill] = useState(null)
   const [isDetailsOpen, setIsDetailsOpen] = useState(false)
 
+  const { toast } = useToast();
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     try {
@@ -59,8 +64,16 @@ export default function Billing() {
         invoice_number: ""
       })
       setIsDialogOpen(false)
+      toast({
+        title: "Invoice Created",
+        description: "The invoice has been created successfully."
+      });
     } catch (error) {
-      console.error('Failed to create bill:', error)
+      toast({
+        title: "Error",
+        description: "Failed to create invoice. Please try again.",
+        variant: "destructive"
+      });
     }
   }
 
@@ -296,63 +309,48 @@ export default function Billing() {
             No bills found
           </div>
         ) : (
-          filteredRecords.map((bill) => (
-            <Card key={bill.id} className="hover:shadow-md transition-shadow w-full">
-              <CardContent className="p-3 sm:p-6">
-                <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-2 sm:mb-4 gap-1 md:gap-0">
-                  <div className="flex items-center gap-2 sm:gap-4">
-                    <div className="flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 bg-primary/10 rounded-lg">
-                      <Receipt className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
+          <Table>
+            <TableBody>
+              {filteredRecords.map((bill) => (
+                <TableRow key={bill.id}>
+                  <TableCell className="font-medium">{bill.invoice_number}</TableCell>
+                  <TableCell>{bill.patients?.full_name}</TableCell>
+                  <TableCell>{bill.amount.toLocaleString()}</TableCell>
+                  <TableCell>{bill.due_date}</TableCell>
+                  <TableCell>{bill.status}</TableCell>
+                  <TableCell>
+                    <div className="flex gap-1">
+                      <Button variant="outline" size="sm" onClick={() => downloadInvoice(bill)}>
+                        <Download className="h-4 w-4 mr-2" />
+                        Download
+                      </Button>
+                      <Button size="sm" onClick={async () => {
+                        if (bill.status === 'pending') {
+                          try {
+                            await updateBill(bill.id, { status: 'paid' });
+                            toast({
+                              title: "Marked as Paid",
+                              description: `Invoice ${bill.invoice_number} marked as paid.`,
+                            });
+                          } catch (error) {
+                            toast({
+                              title: "Error",
+                              description: "Failed to mark as paid. Please try again.",
+                              variant: "destructive"
+                            });
+                          }
+                        } else {
+                          handleViewDetails(bill);
+                        }
+                      }}>
+                        {bill.status === 'pending' ? 'Mark as Paid' : 'View Details'}
+                      </Button>
                     </div>
-                    <div>
-                      <div className="flex items-center gap-1 sm:gap-2">
-                        <h3 className="font-semibold text-base sm:text-lg">{bill.invoice_number}</h3>
-                        <Badge className={getStatusColor(bill.status)}>
-                          {bill.status}
-                        </Badge>
-                      </div>
-                      <p className="text-xs sm:text-sm text-muted-foreground">{bill.patients?.full_name}</p>
-                      <div className="flex items-center gap-2 sm:gap-4 mt-1">
-                        <span className="text-xs text-muted-foreground flex items-center gap-1">
-                          <Calendar className="h-3 w-3" />
-                          Due: {bill.due_date}
-                        </span>
-                        <span className="text-xs text-muted-foreground flex items-center gap-1">
-                          <DollarSign className="h-3 w-3" />
-                          ₹{bill.amount.toLocaleString()}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="flex gap-1 sm:gap-2 mt-2 md:mt-0 w-full md:w-auto">
-                    <Button variant="outline" size="sm" className="flex-1 md:flex-none" onClick={() => downloadInvoice(bill)}>
-                      <Download className="h-4 w-4 mr-2" />
-                      Download
-                    </Button>
-                    <Button size="sm" className="flex-1 md:flex-none" onClick={async () => {
-                      if (bill.status === 'pending') {
-                        try {
-                          await updateBill(bill.id, { status: 'paid' });
-                        } catch (error) {}
-                      } else {
-                        handleViewDetails(bill);
-                      }
-                    }}>
-                      {bill.status === 'pending' ? 'Mark as Paid' : 'View Details'}
-                    </Button>
-                  </div>
-                </div>
-                {bill.description && (
-                  <div className="space-y-1 sm:space-y-2">
-                    <Label className="text-xs sm:text-sm font-medium">Service:</Label>
-                    <div className="p-2 sm:p-3 bg-muted/50 rounded-lg">
-                      <span className="text-xs sm:text-sm">{bill.description}</span>
-                    </div>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          ))
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
         )}
       </div>
 

@@ -47,32 +47,35 @@ export function AppSidebar() {
 
   return (
     <Sidebar className={state === "collapsed" ? "w-14" : "w-64"} collapsible="icon">
-      <SidebarContent>
-        <SidebarGroup>
-          <SidebarGroupLabel className="flex items-center gap-2 mb-4">
-            <Stethoscope className="h-5 w-5 text-primary" />
-            {state !== "collapsed" && <span className="font-semibold">DocConnect</span>}
-          </SidebarGroupLabel>
-          
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {menuItems.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild>
-                    <NavLink 
-                      to={item.url} 
-                      className={`flex items-center gap-3 px-3 py-2 rounded-md transition-colors ${getNavClass(item.url)}`}
-                    >
-                      <item.icon className="h-5 w-5" />
-                      {state !== "collapsed" && <span>{item.title}</span>}
-                    </NavLink>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-      </SidebarContent>
+      <nav aria-label="Main sidebar navigation" className="h-full">
+        <SidebarContent>
+          <SidebarGroup>
+            <SidebarGroupLabel className="flex items-center gap-2 mb-4">
+              <Stethoscope className="h-5 w-5 text-primary" />
+              {state !== "collapsed" && <span className="font-semibold">DocConnect</span>}
+            </SidebarGroupLabel>
+            
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {menuItems.map((item) => (
+                  <SidebarMenuItem key={item.title}>
+                    <SidebarMenuButton asChild>
+                      <NavLink 
+                        to={item.url} 
+                        className={`flex items-center gap-3 px-3 py-2 rounded-md transition-colors ${getNavClass(item.url)}`}
+                        aria-current={isActive(item.url) ? "page" : undefined}
+                      >
+                        <item.icon className="h-5 w-5" />
+                        {state !== "collapsed" && <span>{item.title}</span>}
+                      </NavLink>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        </SidebarContent>
+      </nav>
     </Sidebar>
   )
 }

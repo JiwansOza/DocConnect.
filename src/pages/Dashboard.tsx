@@ -6,56 +6,31 @@ import { useAppointments } from "@/hooks/useAppointments"
 import { usePatients } from "@/hooks/usePatients"
 import { useAuth } from "@/hooks/useAuth"
 import { useEffect, useState } from "react"
-import { supabase } from "@/integrations/supabase/client"
+import { Skeleton } from "@/components/ui/skeleton"
+import { useBilling } from "@/hooks/useBilling"
+import { usePrescriptions } from "@/hooks/usePrescriptions"
 
 export default function Dashboard() {
   const navigate = useNavigate()
   const { appointments } = useAppointments()
   const { patients } = usePatients()
   const { userId, profile, user } = useAuth()
-  const [monthlyRevenue, setMonthlyRevenue] = useState(0)
+  const { bills, loading: billingLoading } = useBilling()
+  const { prescriptions, loading: prescriptionsLoading } = usePrescriptions()
+  const [dashboardLoading, setDashboardLoading] = useState(true)
 
   // Get today's appointments
   const today = new Date().toISOString().split('T')[0]
   const todaysAppointments = appointments.filter(apt => apt.appointment_date === today)
 
-  // Get this month's prescriptions count
+  // Get this month's prescriptions and revenue
   const thisMonth = new Date().toISOString().slice(0, 7)
-  const [monthlyPrescriptions, setMonthlyPrescriptions] = useState(0)
+  const monthlyPrescriptions = prescriptions.filter(p => p.prescribed_date && p.prescribed_date.startsWith(thisMonth)).length
+  const monthlyRevenue = bills.filter(b => b.status === 'paid' && b.created_at && b.created_at.startsWith(thisMonth)).reduce((sum, bill) => sum + Number(bill.amount), 0)
 
   useEffect(() => {
-    if (userId) {
-      fetchMonthlyStats()
-    }
-  }, [userId])
-
-  const fetchMonthlyStats = async () => {
-    try {
-      // Get this month's prescriptions
-      const { data: prescriptions } = await supabase
-        .from('prescriptions')
-        .select('id')
-        .eq('doctor_id', userId)
-        .gte('prescribed_date', `${thisMonth}-01`)
-        .lt('prescribed_date', `${thisMonth}-32`)
-
-      setMonthlyPrescriptions(prescriptions?.length || 0)
-
-      // Get this month's revenue
-      const { data: billing } = await supabase
-        .from('billing')
-        .select('amount')
-        .eq('doctor_id', userId)
-        .eq('status', 'paid')
-        .gte('created_at', `${thisMonth}-01`)
-        .lt('created_at', `${thisMonth}-32`)
-
-      const revenue = billing?.reduce((sum, bill) => sum + Number(bill.amount), 0) || 0
-      setMonthlyRevenue(revenue)
-    } catch (error) {
-      console.error('Error fetching monthly stats:', error)
-    }
-  }
+    setDashboardLoading(billingLoading || prescriptionsLoading)
+  }, [billingLoading, prescriptionsLoading])
 
   const stats = [
     {
@@ -99,21 +74,29 @@ export default function Dashboard() {
 
       {/* Stats Grid */}
       <div className="flex flex-col gap-2 sm:grid sm:grid-cols-2 lg:grid-cols-4 sm:gap-4 md:gap-6">
-        {stats.map((stat, index) => (
-          <Card key={index} className="hover:shadow-md transition-shadow w-full">
-            <CardContent className="p-3 sm:p-4 md:p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-xs sm:text-sm font-medium text-muted-foreground">{stat.title}</p>
-                  <p className="text-xl sm:text-2xl font-bold text-foreground">{stat.value}</p>
+        {dashboardLoading ? (
+          <div className="space-y-2">
+            <Skeleton className="h-8 w-1/2 mb-2" />
+            <Skeleton className="h-8 w-1/3 mb-2" />
+            <Skeleton className="h-40 w-full" />
+          </div>
+        ) : (
+          stats.map((stat, index) => (
+            <Card key={index} className="hover:shadow-md transition-shadow w-full">
+              <CardContent className="p-3 sm:p-4 md:p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-xs sm:text-sm font-medium text-muted-foreground">{stat.title}</p>
+                    <p className="text-xl sm:text-2xl font-bold text-foreground">{stat.value}</p>
+                  </div>
+                  <div className={`p-2 sm:p-3 rounded-full ${stat.bgColor}`}>
+                    <stat.icon className={`h-5 w-5 sm:h-6 sm:w-6 ${stat.color}`} />
+                  </div>
                 </div>
-                <div className={`p-2 sm:p-3 rounded-full ${stat.bgColor}`}>
-                  <stat.icon className={`h-5 w-5 sm:h-6 sm:w-6 ${stat.color}`} />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
+              </CardContent>
+            </Card>
+          ))
+        )}
       </div>
 
       <div className="flex flex-col gap-2 lg:grid lg:grid-cols-2 lg:gap-4 md:gap-6">
@@ -127,21 +110,29 @@ export default function Dashboard() {
           </CardHeader>
           <CardContent>
             <div className="space-y-2 sm:space-y-4">
-              {recentAppointments.length > 0 ? (
-                recentAppointments.map((appointment) => (
-                  <div key={appointment.id} className="flex flex-col md:flex-row items-start md:items-center justify-between p-2 sm:p-3 rounded-lg bg-muted/50 gap-1 md:gap-0">
-                    <div>
-                      <p className="font-medium">{appointment.patients?.full_name}</p>
-                      <p className="text-xs sm:text-sm text-muted-foreground">{appointment.type}</p>
-                    </div>
-                    <div className="text-right">
-                      <p className="font-medium">{appointment.appointment_time}</p>
-                      <Button variant="ghost" size="sm">Join</Button>
-                    </div>
-                  </div>
-                ))
+              {dashboardLoading ? (
+                <div className="space-y-2">
+                  <Skeleton className="h-8 w-1/2 mb-2" />
+                  <Skeleton className="h-8 w-1/3 mb-2" />
+                  <Skeleton className="h-40 w-full" />
+                </div>
               ) : (
-                <p className="text-muted-foreground text-center py-2 sm:py-4">No appointments today</p>
+                recentAppointments.length > 0 ? (
+                  recentAppointments.map((appointment) => (
+                    <div key={appointment.id} className="flex flex-col md:flex-row items-start md:items-center justify-between p-2 sm:p-3 rounded-lg bg-muted/50 gap-1 md:gap-0">
+                      <div>
+                        <p className="font-medium">{appointment.patients?.full_name}</p>
+                        <p className="text-xs sm:text-sm text-muted-foreground">{appointment.type}</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="font-medium">{appointment.appointment_time}</p>
+                        <Button variant="ghost" size="sm">Join</Button>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-muted-foreground text-center py-2 sm:py-4">No appointments today</p>
+                )
               )}
             </div>
           </CardContent>

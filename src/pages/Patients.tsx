@@ -24,6 +24,9 @@ import {
   Activity
 } from "lucide-react"
 import { usePatients } from "@/hooks/usePatients"
+import { useToast } from "@/hooks/use-toast"
+import { Skeleton } from "@/components/ui/skeleton"
+import { Table, TableBody, TableCell, TableRow } from "@/components/ui/table"
 
 export default function Patients() {
   const [isDialogOpen, setIsDialogOpen] = useState(false)
@@ -43,6 +46,7 @@ export default function Patients() {
   })
 
   const { patients, loading, addPatient } = usePatients()
+  const { toast } = useToast()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -61,8 +65,16 @@ export default function Patients() {
         allergies: ""
       })
       setIsDialogOpen(false)
+      toast({
+        title: "Patient Added",
+        description: "The patient has been added successfully."
+      })
     } catch (error) {
-      console.error('Failed to add patient:', error)
+      toast({
+        title: "Error",
+        description: "Failed to add patient. Please try again.",
+        variant: "destructive"
+      })
     }
   }
 

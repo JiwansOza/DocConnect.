@@ -24,6 +24,9 @@ import {
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useTeleconsultations } from "@/hooks/useTeleconsultations"
 import { usePatients } from "@/hooks/usePatients"
+import { useToast } from "@/hooks/use-toast"
+import { Skeleton } from "@/components/ui/skeleton"
+import { Table, TableBody, TableCell, TableRow } from "@/components/ui/table"
 
 export default function Teleconsult() {
   const [isDialogOpen, setIsDialogOpen] = useState(false)
@@ -38,6 +41,7 @@ export default function Teleconsult() {
 
   const { teleconsultations, loading: teleconsultationsLoading, addTeleconsultation } = useTeleconsultations()
   const { patients } = usePatients()
+  const { toast } = useToast()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -56,8 +60,16 @@ export default function Teleconsult() {
         meeting_url: ""
       })
       setIsDialogOpen(false)
+      toast({
+        title: "Teleconsultation Scheduled",
+        description: "The video consultation has been scheduled."
+      })
     } catch (error) {
-      console.error('Failed to schedule teleconsultation:', error)
+      toast({
+        title: "Error",
+        description: "Failed to schedule teleconsultation. Please try again.",
+        variant: "destructive"
+      })
     }
   }
 
@@ -234,59 +246,46 @@ export default function Teleconsult() {
         <CardHeader>
           <CardTitle className="text-lg sm:text-xl">Upcoming Consultations</CardTitle>
         </CardHeader>
-        <CardContent className="p-2 sm:p-6">
-          <div className="space-y-2 sm:space-y-4">
-            {teleconsultationsLoading ? (
-              <div className="text-center py-2 sm:py-4">Loading teleconsultations...</div>
-            ) : teleconsultations.length === 0 ? (
-              <div className="text-center py-2 sm:py-4 text-muted-foreground">
-                No upcoming consultations
-              </div>
-            ) : (
-              teleconsultations.map((consultation) => (
-                <div
-                  key={consultation.id}
-                  className="flex flex-col md:flex-row items-start md:items-center justify-between p-2 sm:p-4 rounded-lg border bg-card hover:shadow-md transition-shadow gap-1 md:gap-0"
-                >
-                  <div className="flex items-center gap-2 sm:gap-4">
-                    <div className="flex flex-col items-center justify-center w-10 h-10 sm:w-16 sm:h-16 bg-primary/10 rounded-lg">
-                      <Video className="h-5 w-5 sm:h-8 sm:w-8 text-primary" />
-                      <span className="text-xs font-medium">{consultation.time}</span>
-                    </div>
-                    <div>
-                      <div className="flex items-center gap-1 sm:gap-2">
-                        <h3 className="font-semibold text-base sm:text-lg">{consultation.patients?.full_name}</h3>
-                        <Badge className={getStatusColor(consultation.status)}>
-                          {consultation.status}
-                        </Badge>
+        <CardContent>
+          {teleconsultationsLoading ? (
+            <div className="space-y-2">
+              <Skeleton className="h-8 w-full mb-2" />
+              <Skeleton className="h-8 w-full mb-2" />
+              <Skeleton className="h-8 w-full" />
+            </div>
+          ) : teleconsultations.length === 0 ? (
+            <div className="text-center py-4 text-muted-foreground">No teleconsultations found</div>
+          ) : (
+            <Table>
+              <TableBody>
+                {teleconsultations.map((consultation) => (
+                  <TableRow key={consultation.id}>
+                    <TableCell className="font-medium">{consultation.patients?.full_name}</TableCell>
+                    <TableCell>{consultation.date}</TableCell>
+                    <TableCell>{consultation.time}</TableCell>
+                    <TableCell>{consultation.duration} minutes</TableCell>
+                    <TableCell>
+                      <Badge className={getStatusColor(consultation.status)}>
+                        {consultation.status}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex gap-1">
+                        <Button variant="outline" size="sm" onClick={() => copyToClipboard(consultation.meeting_url)}>
+                          <Copy className="h-4 w-4 mr-2" />
+                          Copy Link
+                        </Button>
+                        <Button size="sm" onClick={() => window.open(consultation.meeting_url, '_blank')}>
+                          <ExternalLink className="h-4 w-4 mr-2" />
+                          Join Meeting
+                        </Button>
                       </div>
-                      <p className="text-xs sm:text-sm text-muted-foreground">{consultation.date}</p>
-                      <div className="flex items-center gap-2 sm:gap-4 mt-1">
-                        <span className="text-xs text-muted-foreground flex items-center gap-1">
-                          <Clock className="h-3 w-3" />
-                          {consultation.duration} min
-                        </span>
-                        <span className="text-xs text-muted-foreground flex items-center gap-1">
-                          <User className="h-3 w-3" />
-                          Dr. Smith
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="flex gap-1 sm:gap-2 mt-2 md:mt-0 w-full md:w-auto">
-                    <Button variant="outline" size="sm" className="flex-1 md:flex-none" onClick={() => copyToClipboard(consultation.meeting_url)}>
-                      <Copy className="h-4 w-4 mr-2" />
-                      Copy Link
-                    </Button>
-                    <Button size="sm" className="flex-1 md:flex-none" onClick={() => window.open(consultation.meeting_url, '_blank')}>
-                      <ExternalLink className="h-4 w-4 mr-2" />
-                      Join Meeting
-                    </Button>
-                  </div>
-                </div>
-              ))
-            )}
-          </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
         </CardContent>
       </Card>
 

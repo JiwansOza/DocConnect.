@@ -19,6 +19,8 @@ import { cn } from "@/lib/utils"
 import { useAppointments } from "@/hooks/useAppointments"
 import { usePatients } from "@/hooks/usePatients"
 import { useAuth } from "@/hooks/useAuth"
+import { useToast } from "@/hooks/use-toast"
+import { Skeleton } from "@/components/ui/skeleton"
 
 export default function Appointments() {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date())
@@ -36,6 +38,7 @@ export default function Appointments() {
   const { user } = useAuth()
   const [rescheduleDialog, setRescheduleDialog] = useState({ open: false, appointment: null })
   const [rescheduleData, setRescheduleData] = useState({ date: '', time: '' })
+  const { toast } = useToast()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -49,8 +52,16 @@ export default function Appointments() {
         notes: ""
       })
       setIsDialogOpen(false)
+      toast({
+        title: "Appointment Scheduled",
+        description: "The appointment has been added successfully."
+      })
     } catch (error) {
-      console.error('Failed to add appointment:', error)
+      toast({
+        title: "Error",
+        description: "Failed to add appointment. Please try again.",
+        variant: "destructive"
+      })
     }
   }
 
@@ -99,12 +110,24 @@ export default function Appointments() {
 
   async function handleRescheduleSave() {
     const { appointment } = rescheduleDialog;
-    await updateAppointment(appointment.id, {
-      appointment_date: rescheduleData.date,
-      appointment_time: rescheduleData.time,
-      status: 'confirmed',
-    });
-    setRescheduleDialog({ open: false, appointment: null });
+    try {
+      await updateAppointment(appointment.id, {
+        appointment_date: rescheduleData.date,
+        appointment_time: rescheduleData.time,
+        status: 'confirmed',
+      });
+      setRescheduleDialog({ open: false, appointment: null });
+      toast({
+        title: "Appointment Rescheduled",
+        description: "The appointment has been updated."
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to reschedule appointment. Please try again.",
+        variant: "destructive"
+      });
+    }
   }
 
   return (
@@ -213,12 +236,20 @@ export default function Appointments() {
             <CardTitle className="text-lg sm:text-xl">Calendar</CardTitle>
           </CardHeader>
           <CardContent className="p-2 sm:p-6">
-            <Calendar
-              mode="single"
-              selected={selectedDate}
-              onSelect={setSelectedDate}
-              className="w-full"
-            />
+            {appointmentsLoading ? (
+              <div className="space-y-2 sm:space-y-4">
+                <Skeleton className="h-8 w-full mb-2" />
+                <Skeleton className="h-8 w-full mb-2" />
+                <Skeleton className="h-8 w-full" />
+              </div>
+            ) : (
+              <Calendar
+                mode="single"
+                selected={selectedDate}
+                onSelect={setSelectedDate}
+                className="w-full"
+              />
+            )}
           </CardContent>
         </Card>
 
@@ -230,7 +261,11 @@ export default function Appointments() {
           <CardContent className="p-2 sm:p-6">
             <div className="space-y-2 sm:space-y-4">
               {appointmentsLoading ? (
-                <div className="text-center py-2 sm:py-4">Loading appointments...</div>
+                <>
+                  <Skeleton className="h-16 w-full mb-2" />
+                  <Skeleton className="h-16 w-full mb-2" />
+                  <Skeleton className="h-16 w-full" />
+                </>
               ) : filteredAppointments.length === 0 ? (
                 <div className="text-center py-2 sm:py-4 text-muted-foreground">
                   No appointments for this date

@@ -1,6 +1,7 @@
 import * as React from "react"
 import { Slot } from "@radix-ui/react-slot"
 import { ChevronRight, MoreHorizontal } from "lucide-react"
+import { Link, useLocation } from "react-router-dom"
 
 import { cn } from "@/lib/utils"
 
@@ -103,6 +104,35 @@ const BreadcrumbEllipsis = ({
   </span>
 )
 BreadcrumbEllipsis.displayName = "BreadcrumbElipssis"
+
+export function AppBreadcrumb() {
+  const location = useLocation();
+  const pathnames = location.pathname.split("/").filter(Boolean);
+
+  return (
+    <nav className="text-xs sm:text-sm mb-2 sm:mb-4" aria-label="Breadcrumb">
+      <ol className="flex flex-wrap items-center gap-1 text-muted-foreground">
+        <li>
+          <Link to="/" className="hover:underline">Home</Link>
+        </li>
+        {pathnames.map((value, index) => {
+          const to = `/${pathnames.slice(0, index + 1).join("/")}`;
+          const isLast = index === pathnames.length - 1;
+          return (
+            <li key={to} className="flex items-center gap-1">
+              <span className="mx-1">/</span>
+              {isLast ? (
+                <span className="font-semibold text-foreground">{decodeURIComponent(value.charAt(0).toUpperCase() + value.slice(1))}</span>
+              ) : (
+                <Link to={to} className="hover:underline">{decodeURIComponent(value.charAt(0).toUpperCase() + value.slice(1))}</Link>
+              )}
+            </li>
+          );
+        })}
+      </ol>
+    </nav>
+  );
+}
 
 export {
   Breadcrumb,

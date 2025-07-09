@@ -26,6 +26,9 @@ import { usePrescriptions } from "@/hooks/usePrescriptions"
 import { usePatients } from "@/hooks/usePatients"
 import jsPDF from "jspdf"
 import { useAuth } from "@/hooks/useAuth"
+import { useToast } from "@/hooks/use-toast"
+import { Skeleton } from "@/components/ui/skeleton"
+import { Table, TableBody } from "@/components/ui/table"
 
 export default function Prescriptions() {
   const [isDialogOpen, setIsDialogOpen] = useState(false)
@@ -45,6 +48,7 @@ export default function Prescriptions() {
   const { prescriptions, loading: prescriptionsLoading, addPrescription } = usePrescriptions()
   const { patients } = usePatients()
   const { user } = useAuth()
+  const { toast } = useToast()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -60,8 +64,16 @@ export default function Prescriptions() {
         prescribed_date: new Date().toISOString().split('T')[0]
       })
       setIsDialogOpen(false)
+      toast({
+        title: "Prescription Added",
+        description: "The prescription has been added successfully."
+      })
     } catch (error) {
-      console.error('Failed to add prescription:', error)
+      toast({
+        title: "Error",
+        description: "Failed to add prescription. Please try again.",
+        variant: "destructive"
+      })
     }
   }
 
@@ -254,59 +266,63 @@ export default function Prescriptions() {
             No prescriptions found
           </div>
         ) : (
-          filteredPrescriptions.map((prescription) => (
-            <Card key={prescription.id} className="hover:shadow-md transition-shadow w-full">
-              <CardContent className="p-3 sm:p-6">
-                <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-2 sm:mb-4 gap-1 md:gap-0">
-                  <div className="flex items-center gap-2 sm:gap-4">
-                    <div className="flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 bg-primary/10 rounded-lg">
-                      <FileText className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
-                    </div>
-                    <div>
-                      <div className="flex items-center gap-1 sm:gap-2">
-                        <h3 className="font-semibold text-base sm:text-lg">{prescription.patients?.full_name}</h3>
-                        <Badge className={getStatusColor(prescription.status)}>
-                          {prescription.status}
-                        </Badge>
+          <Table>
+            <TableBody>
+              {filteredPrescriptions.map((prescription) => (
+                <Card key={prescription.id} className="hover:shadow-md transition-shadow w-full">
+                  <CardContent className="p-3 sm:p-6">
+                    <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-2 sm:mb-4 gap-1 md:gap-0">
+                      <div className="flex items-center gap-2 sm:gap-4">
+                        <div className="flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 bg-primary/10 rounded-lg">
+                          <FileText className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
+                        </div>
+                        <div>
+                          <div className="flex items-center gap-1 sm:gap-2">
+                            <h3 className="font-semibold text-base sm:text-lg">{prescription.patients?.full_name}</h3>
+                            <Badge className={getStatusColor(prescription.status)}>
+                              {prescription.status}
+                            </Badge>
+                          </div>
+                          <p className="text-xs sm:text-sm text-muted-foreground">{prescription.medication_name}</p>
+                          <div className="flex items-center gap-2 sm:gap-4 mt-1">
+                            <span className="text-xs text-muted-foreground flex items-center gap-1">
+                              <Calendar className="h-3 w-3" />
+                              {prescription.prescribed_date}
+                            </span>
+                            <span className="text-xs text-muted-foreground flex items-center gap-1">
+                              <User className="h-3 w-3" />
+                              {`Dr. ${user?.fullName || 'Doctor'}`}
+                            </span>
+                          </div>
+                        </div>
                       </div>
-                      <p className="text-xs sm:text-sm text-muted-foreground">{prescription.medication_name}</p>
-                      <div className="flex items-center gap-2 sm:gap-4 mt-1">
-                        <span className="text-xs text-muted-foreground flex items-center gap-1">
-                          <Calendar className="h-3 w-3" />
-                          {prescription.prescribed_date}
-                        </span>
-                        <span className="text-xs text-muted-foreground flex items-center gap-1">
-                          <User className="h-3 w-3" />
-                          {`Dr. ${user?.fullName || 'Doctor'}`}
-                        </span>
+                      <div className="flex gap-1 sm:gap-2 mt-2 md:mt-0 w-full md:w-auto">
+                        <Button variant="outline" size="sm" className="flex-1 md:flex-none" onClick={() => downloadPrescriptionPDF(prescription)}>
+                          <Download className="h-4 w-4 mr-2" />
+                          Download PDF
+                        </Button>
+                        <Button size="sm" className="flex-1 md:flex-none" onClick={() => handleViewDetails(prescription)}>View Details</Button>
                       </div>
                     </div>
-                  </div>
-                  <div className="flex gap-1 sm:gap-2 mt-2 md:mt-0 w-full md:w-auto">
-                    <Button variant="outline" size="sm" className="flex-1 md:flex-none" onClick={() => downloadPrescriptionPDF(prescription)}>
-                      <Download className="h-4 w-4 mr-2" />
-                      Download PDF
-                    </Button>
-                    <Button size="sm" className="flex-1 md:flex-none" onClick={() => handleViewDetails(prescription)}>View Details</Button>
-                  </div>
-                </div>
-                <div className="space-y-1 sm:space-y-2">
-                  <Label className="text-xs sm:text-sm font-medium">Medication Details:</Label>
-                  <div className="p-2 sm:p-3 bg-muted/50 rounded-lg">
-                    <p className="font-medium text-xs sm:text-sm">{prescription.medication_name}</p>
-                    <p className="text-xs sm:text-sm text-muted-foreground">
-                      {prescription.dosage} • {prescription.frequency} • {prescription.duration}
-                    </p>
-                    {prescription.instructions && (
-                      <p className="text-xs sm:text-muted-foreground mt-1">
-                        Instructions: {prescription.instructions}
-                      </p>
-                    )}
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))
+                    <div className="space-y-1 sm:space-y-2">
+                      <Label className="text-xs sm:text-sm font-medium">Medication Details:</Label>
+                      <div className="p-2 sm:p-3 bg-muted/50 rounded-lg">
+                        <p className="font-medium text-xs sm:text-sm">{prescription.medication_name}</p>
+                        <p className="text-xs sm:text-sm text-muted-foreground">
+                          {prescription.dosage} • {prescription.frequency} • {prescription.duration}
+                        </p>
+                        {prescription.instructions && (
+                          <p className="text-xs sm:text-muted-foreground mt-1">
+                            Instructions: {prescription.instructions}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </TableBody>
+          </Table>
         )}
       </div>
 
